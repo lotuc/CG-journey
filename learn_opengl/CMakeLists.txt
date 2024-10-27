@@ -1,6 +1,7 @@
 include(${PROJECT_SOURCE_DIR}/cmake/modules/Find_glfw.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/modules/Find_glad.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/modules/Find_stb.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/modules/Find_glm.cmake)
 
 if (NOT glfw_FOUND)
   message(FATAL_ERROR "glfw not found!")
@@ -39,3 +40,16 @@ target_include_directories(
   hello_texture PUBLIC ${stb_INCLUDE_DIRS} ${glad_INCLUDE_DIRS} ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_texture ${glfw_LIBRARIES})
+
+
+add_executable(
+  hello_transformations hello_transformations.cpp ${glad_SOURCES})
+target_include_directories(
+  hello_transformations
+  PUBLIC
+  ${glm_INCLUDE_DIRS}
+  ${stb_INCLUDE_DIRS}
+  ${glad_INCLUDE_DIRS}
+  ${glfw_INCLUDE_DIRS})
+target_link_libraries(
+  hello_transformations ${glfw_LIBRARIES})
