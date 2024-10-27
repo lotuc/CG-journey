@@ -53,3 +53,16 @@ target_include_directories(
   ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_transformations ${glfw_LIBRARIES})
+
+
+add_executable(
+  hello_coordinate_systems hello_coordinate_systems.cpp ${glad_SOURCES})
+target_include_directories(
+  hello_coordinate_systems
+  PUBLIC
+  ${glm_INCLUDE_DIRS}
+  ${stb_INCLUDE_DIRS}
+  ${glad_INCLUDE_DIRS}
+  ${glfw_INCLUDE_DIRS})
+target_link_libraries(
+  hello_coordinate_systems ${glfw_LIBRARIES})
