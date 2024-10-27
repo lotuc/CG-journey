@@ -19,3 +19,11 @@ target_include_directories(
   hello_triangle PUBLIC ${glad_INCLUDE_DIRS} ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_triangle ${glfw_LIBRARIES})
+
+
+add_executable(
+  hello_shader hello_shader.cpp ${glad_SOURCES})
+target_include_directories(
+  hello_shader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${glad_INCLUDE_DIRS} ${glfw_INCLUDE_DIRS})
+target_link_libraries(
+  hello_shader ${glfw_LIBRARIES})
