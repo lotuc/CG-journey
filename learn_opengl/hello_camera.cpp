@@ -15,6 +15,7 @@
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -44,6 +45,10 @@ unsigned int load_texture(const char *texture_file, GLenum format, bool flip) {
   return texture;
 }
 
+glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 3.0f);
+
 int main() {
 
   // glfw: initialize and configure
@@ -67,6 +72,7 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetKeyCallback(window, key_callback);
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -160,8 +166,6 @@ int main() {
   glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   while (!glfwWindowShouldClose(window)) {
-    processInput(window);
-
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -176,8 +180,7 @@ int main() {
     GLfloat cam_x = sin(glfwGetTime()) * radius;
     GLfloat cam_z = cos(glfwGetTime()) * radius;
 
-    glm::mat4 view =
-        glm::lookAt(glm::vec3(cam_x, 0.0f, cam_z), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
     float x = 0, y = 0, z = 0;
@@ -205,9 +208,18 @@ int main() {
   return 0;
 }
 
-void processInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-}
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+  GLfloat camera_speed = 0.05f;
+  if (key == GLFW_KEY_ESCAPE)
+    glfwSetWindowShouldClose(window, true);
+  if (key == GLFW_KEY_W)
+    camera_pos += camera_speed * camera_front;
+  if (key == GLFW_KEY_S)
+    camera_pos -= camera_speed * camera_front;
+  if (key == GLFW_KEY_A)
+    camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+  if (key == GLFW_KEY_D)
+    camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+}
