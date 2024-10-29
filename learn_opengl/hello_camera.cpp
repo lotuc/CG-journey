@@ -49,6 +49,11 @@ glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 3.0f);
 
+bool keys[1024];
+
+GLfloat delta_time = 0.0f;
+GLfloat last_frame = 0.0f;
+
 int main() {
 
   // glfw: initialize and configure
@@ -176,6 +181,10 @@ int main() {
 
     glBindVertexArray(VAO);
 
+    GLfloat current_frame = glfwGetTime();
+    delta_time = current_frame - last_frame;
+    last_frame = current_frame;
+
     GLfloat radius = 10.0f;
     GLfloat cam_x = sin(glfwGetTime()) * radius;
     GLfloat cam_z = cos(glfwGetTime()) * radius;
@@ -210,10 +219,8 @@ int main() {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
-bool keys[1024];
-
 void do_movement() {
-  GLfloat camera_speed = 0.05f;
+  GLfloat camera_speed = 5.0f * delta_time;
   if (keys[GLFW_KEY_W])
     camera_pos += camera_speed * camera_front;
   if (keys[GLFW_KEY_S])
