@@ -210,16 +210,28 @@ int main() {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+bool keys[1024];
+
+void do_movement() {
   GLfloat camera_speed = 0.05f;
+  if (keys[GLFW_KEY_W])
+    camera_pos += camera_speed * camera_front;
+  if (keys[GLFW_KEY_S])
+    camera_pos -= camera_speed * camera_front;
+  if (keys[GLFW_KEY_A])
+    camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+  if (keys[GLFW_KEY_D])
+    camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
   if (key == GLFW_KEY_ESCAPE)
     glfwSetWindowShouldClose(window, true);
-  if (key == GLFW_KEY_W)
-    camera_pos += camera_speed * camera_front;
-  if (key == GLFW_KEY_S)
-    camera_pos -= camera_speed * camera_front;
-  if (key == GLFW_KEY_A)
-    camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
-  if (key == GLFW_KEY_D)
-    camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+
+  if (action == GLFW_PRESS)
+    keys[key] = true;
+  else if (action == GLFW_RELEASE)
+    keys[key] = false;
+
+  do_movement();
 }
