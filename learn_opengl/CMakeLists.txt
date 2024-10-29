@@ -66,3 +66,16 @@ target_include_directories(
   ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_coordinate_systems ${glfw_LIBRARIES})
+
+
+add_executable(
+  hello_camera hello_camera.cpp ${glad_SOURCES})
+target_include_directories(
+  hello_camera
+  PUBLIC
+  ${glm_INCLUDE_DIRS}
+  ${stb_INCLUDE_DIRS}
+  ${glad_INCLUDE_DIRS}
+  ${glfw_INCLUDE_DIRS})
+target_link_libraries(
+  hello_camera ${glfw_LIBRARIES})
