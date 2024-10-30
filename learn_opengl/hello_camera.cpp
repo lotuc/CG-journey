@@ -16,6 +16,7 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -51,8 +52,11 @@ glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 3.0f);
 
 bool keys[1024];
 
+GLboolean first_mouse = true;
 GLfloat delta_time = 0.0f;
 GLfloat last_frame = 0.0f;
+GLfloat last_x = 400, last_y = 300;
+GLfloat yaw = 0, pitch = 0;
 
 int main() {
 
@@ -78,6 +82,9 @@ int main() {
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetKeyCallback(window, key_callback);
+
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouse_callback);
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -170,6 +177,7 @@ int main() {
   unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
   glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
+  last_frame = glfwGetTime();
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -241,4 +249,36 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     keys[key] = false;
 
   do_movement();
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+  if (first_mouse) {
+    last_x = xpos;
+    last_y = ypos;
+    first_mouse = false;
+  }
+
+  GLfloat xoffset = xpos - last_x;
+  GLfloat yoffset = ypos - last_y;
+  last_x = xpos;
+  last_y = ypos;
+
+  GLfloat sensitivity = 0.05f;
+  xoffset *= sensitivity;
+  yoffset *= sensitivity;
+
+  yaw += xoffset;
+  pitch += yoffset;
+
+  if (pitch > 89.0f)
+    pitch = 89.0f;
+  if (pitch < -89.0f)
+    pitch = -89.0f;
+
+  glm::vec3 front;
+  front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+  front.y = sin(glm::radians(pitch));
+  front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+
+  camera_front = glm::normalize(front);
 }
