@@ -139,8 +139,8 @@ int main() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture2);
 
-  ourShader.setInt("texture1", 0);
-  ourShader.setInt("texture2", 1);
+  ourShader.set_int("texture1", 0);
+  ourShader.set_int("texture2", 1);
 
   glm::vec3 cubePositions[] = {glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
                                glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
@@ -156,10 +156,10 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
 
-  unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+  unsigned int viewLoc = glGetUniformLocation(ourShader.id, "view");
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-  unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+  unsigned int projectionLoc = glGetUniformLocation(ourShader.id, "projection");
   glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   while (!glfwWindowShouldClose(window)) {
@@ -171,7 +171,7 @@ int main() {
     // update the uniform color
     float timeValue = glfwGetTime();
     float greenValue = sin(timeValue) / 2.0f + 0.5f;
-    ourShader.setFloat("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+    ourShader.set_float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
     glBindVertexArray(VAO);
 
@@ -183,7 +183,7 @@ int main() {
 
       model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
-      unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+      unsigned int modelLoc = glGetUniformLocation(ourShader.id, "model");
       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
       // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

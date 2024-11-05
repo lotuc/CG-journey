@@ -29,7 +29,10 @@ target_link_libraries(
 add_executable(
   hello_shader hello_shader.cpp ${glad_SOURCES})
 target_include_directories(
-  hello_shader PUBLIC ${glad_INCLUDE_DIRS} ${glfw_INCLUDE_DIRS})
+  hello_shader PUBLIC
+  ${glm_INCLUDE_DIRS}
+  ${glad_INCLUDE_DIRS}
+  ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_shader ${glfw_LIBRARIES})
 
@@ -37,7 +40,11 @@ target_link_libraries(
 add_executable(
   hello_texture hello_texture.cpp ${glad_SOURCES})
 target_include_directories(
-  hello_texture PUBLIC ${stb_INCLUDE_DIRS} ${glad_INCLUDE_DIRS} ${glfw_INCLUDE_DIRS})
+  hello_texture PUBLIC
+  ${glm_INCLUDE_DIRS}
+  ${stb_INCLUDE_DIRS}
+  ${glad_INCLUDE_DIRS}
+  ${glfw_INCLUDE_DIRS})
 target_link_libraries(
   hello_texture ${glfw_LIBRARIES})
 
@@ -69,7 +76,7 @@ target_link_libraries(
 
 
 add_executable(
-  hello_camera hello_camera.cpp ${glad_SOURCES})
+  hello_camera hello_camera.cpp shader.h ${glad_SOURCES})
 target_include_directories(
   hello_camera
   PUBLIC

@@ -88,7 +88,7 @@ int main() {
     // update the uniform color
     float timeValue = glfwGetTime();
     float greenValue = sin(timeValue) / 2.0f + 0.5f;
-    ourShader.setFloat("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+    ourShader.set_float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

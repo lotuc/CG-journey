@@ -6,7 +6,10 @@
 
 #include <GLFW/glfw3.h>
 
+#include "camera.h"
 #include "shader.h"
+
+#include "data0.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -47,18 +50,41 @@ unsigned int load_texture(const char *texture_file, GLenum format, bool flip) {
   return texture;
 }
 
-glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 3.0f);
-
 bool keys[1024];
 
 GLboolean first_mouse = true;
 GLfloat delta_time = 0.0f;
 GLfloat last_frame = 0.0f;
 GLfloat last_x = SCR_WIDTH / 2.0f, last_y = SCR_HEIGHT / 2.0f;
-GLfloat yaw = -90.0, pitch = 0;
-GLfloat fov = 45.0;
+
+Camera camera;
+
+void setup_vbo(unsigned int &VAO, unsigned int &VBO, unsigned int &EBO) {
+  glGenVertexArrays(1, &VAO);
+  glGenBuffers(1, &VBO);
+  glGenBuffers(1, &EBO);
+
+  glBindVertexArray(VAO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+
+  unsigned int indices[] = {
+      // note that we start from 0!
+      0, 1, 3, // first Triangle
+      1, 2, 3  // second Triangle
+  };
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(0));
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
 int main() {
 
@@ -97,120 +123,47 @@ int main() {
     return -1;
   }
 
-  Shader ourShader("learn_opengl/shaders/3.6.shader.vs", "learn_opengl/shaders/3.6.shader.fs");
+  Shader shader("learn_opengl/shaders/3.6.shader.vs", "learn_opengl/shaders/3.6.shader.fs");
 
-  unsigned int texture1 = load_texture("learn_opengl/textures/container.jpg", GL_RGB, false);
-  unsigned int texture2 = load_texture("learn_opengl/textures/awesomeface.png", GL_RGBA, true);
-
-  // Set up vertex data (and buffer(s)) and configure vertex attributes
-  // ------------------------------------------------------------------
-  float vertices[] = {
-      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f,
-      0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-      -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 1.0f, -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f,
-
-      -0.5f, 0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  0.5f,  1.0f, 0.0f,
-
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 0.0f, 1.0f,
-      0.5f,  -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, 0.5f,  0.0f, 0.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-      -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.5f,  -0.5f, -0.5f, 1.0f, 1.0f, 0.5f,  -0.5f, 0.5f,  1.0f, 0.0f,
-      0.5f,  -0.5f, 0.5f,  1.0f, 0.0f, -0.5f, -0.5f, 0.5f,  0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-      -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.5f,  0.5f,  -0.5f, 1.0f, 1.0f, 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -0.5f, 0.5f,  0.5f,  0.0f, 0.0f, -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f};
-  unsigned int indices[] = {
-      // note that we start from 0!
-      0, 1, 3, // first Triangle
-      1, 2, 3  // second Triangle
-  };
-  float texCoords[] = {
-      0.0f, 0.0f, // lower-left corner
-      1.0f, 0.0f, // lower-right corner
-      0.5f, 1.0f  // top-center corner
-  };
   unsigned int VBO, VAO, EBO;
-  glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &VBO);
-  glGenBuffers(1, &EBO);
+  setup_vbo(VBO, VAO, EBO);
 
-  glBindVertexArray(VAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(0));
-  glEnableVertexAttribArray(0);
-
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  ourShader.use();
+  shader.use();
 
   glActiveTexture(GL_TEXTURE0); // default behavior
+  unsigned int texture1 = load_texture("learn_opengl/textures/container.jpg", GL_RGB, false);
   glBindTexture(GL_TEXTURE_2D, texture1);
 
   glActiveTexture(GL_TEXTURE1);
+  unsigned int texture2 = load_texture("learn_opengl/textures/awesomeface.png", GL_RGBA, true);
   glBindTexture(GL_TEXTURE_2D, texture2);
 
-  ourShader.setInt("texture1", 0);
-  ourShader.setInt("texture2", 1);
-
-  glm::vec3 cubePositions[] = {glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
-                               glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
-                               glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
-                               glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
-                               glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f)};
+  shader.set_int("texture1", 0);
+  shader.set_int("texture2", 1);
 
   glEnable(GL_DEPTH_TEST);
 
-  unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-  unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-  unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-
-  std::cout << "front (" << camera_front[0] << ", " << camera_front[1] << ", " << camera_front[2] << ")" << std::endl;
-  std::cout << "fov (" << fov << ")" << std::endl;
-
   last_frame = glfwGetTime();
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // update the uniform color
-    float timeValue = glfwGetTime();
-    float greenValue = sin(timeValue) / 2.0f + 0.5f;
-    ourShader.setFloat("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
-
-    glBindVertexArray(VAO);
-
     GLfloat current_frame = glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
 
-    glm::mat4 projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 1000.0f);
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 view = glm::lookAt(camera_pos, camera_pos + camera_front, camera_up);
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glBindVertexArray(VAO);
 
-    float x = 0, y = 0, z = 0;
+    shader.set_mat4("projection", glm::perspective(glm::radians(camera.fov), 800.0f / 600.0f, 0.1f, 1000.0f));
+    shader.set_mat4("view", camera.get_view());
+
     for (unsigned int i = 0; i < 10; i++) {
       glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, cubePositions[i]);
+      model = glm::translate(model, cube_positions[i]);
       float angle = 20.0f * i;
       model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0, 0.3f, 0.5f));
+      shader.set_mat4("model", model);
 
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-      // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
@@ -228,18 +181,6 @@ int main() {
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); }
 
-void do_movement() {
-  GLfloat camera_speed = 5.0f * delta_time;
-  if (keys[GLFW_KEY_W])
-    camera_pos += camera_speed * camera_front;
-  if (keys[GLFW_KEY_S])
-    camera_pos -= camera_speed * camera_front;
-  if (keys[GLFW_KEY_A])
-    camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
-  if (keys[GLFW_KEY_D])
-    camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
-}
-
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
   if (key == GLFW_KEY_ESCAPE)
     glfwSetWindowShouldClose(window, true);
@@ -249,7 +190,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
   else if (action == GLFW_RELEASE)
     keys[key] = false;
 
-  do_movement();
+  if (keys[GLFW_KEY_W])
+    camera.on_keyboard_move(FORWARD, delta_time);
+  if (keys[GLFW_KEY_S])
+    camera.on_keyboard_move(BACKWARD, delta_time);
+  if (keys[GLFW_KEY_A])
+    camera.on_keyboard_move(LEFT, delta_time);
+  if (keys[GLFW_KEY_D])
+    camera.on_keyboard_move(RIGHT, delta_time);
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
@@ -259,38 +207,12 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     first_mouse = false;
   }
 
-  GLfloat xoffset = xpos - last_x;
-  GLfloat yoffset = last_y - ypos;
+  float xoffset = xpos - last_x;
+  float yoffset = ypos - last_y;
   last_x = xpos;
   last_y = ypos;
 
-  GLfloat sensitivity = 0.1f;
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-  front.y = sin(glm::radians(pitch));
-  front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-
-  camera_front = glm::normalize(front);
-  std::cout << "front (" << camera_front[0] << ", " << camera_front[1] << ", " << camera_front[2] << ")" << std::endl;
+  camera.on_mouse_move(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  if (fov >= 1.0f && fov <= 45.0f)
-    fov -= yoffset;
-  if (fov <= 1.0f)
-    fov = 1.0f;
-  if (fov >= 45.0f)
-    fov = 45.0f;
-  std::cout << "fov (" << fov << ")" << std::endl;
-}
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) { camera.on_mouse_scroll(yoffset); }

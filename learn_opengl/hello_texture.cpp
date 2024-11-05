@@ -127,8 +127,8 @@ int main() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture2);
 
-  ourShader.setInt("texture1", 0);
-  ourShader.setInt("texture2", 1);
+  ourShader.set_int("texture1", 0);
+  ourShader.set_int("texture2", 1);
 
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
@@ -139,7 +139,7 @@ int main() {
     // update the uniform color
     float timeValue = glfwGetTime();
     float greenValue = sin(timeValue) / 2.0f + 0.5f;
-    ourShader.setFloat("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+    ourShader.set_float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
